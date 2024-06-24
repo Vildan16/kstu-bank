@@ -3,13 +3,20 @@ package kstu.bank.services;
 import java.util.Optional;
 import kstu.bank.data.User;
 import kstu.bank.data.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 public class UserService {
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    @Autowired
+    private UserRepository userRepository;
 
     private final UserRepository repository;
 
@@ -41,4 +48,8 @@ public class UserService {
         return (int) repository.count();
     }
 
+    public User save(User user, String password) {
+        user.setHashedPassword(passwordEncoder.encode(password));
+        return userRepository.save(user);
+    }
 }

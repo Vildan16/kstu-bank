@@ -1,4 +1,4 @@
-package kstu.bank.views.техподдержка;
+package kstu.bank.views.support;
 
 import com.vaadin.collaborationengine.CollaborationAvatarGroup;
 import com.vaadin.collaborationengine.CollaborationMessageInput;
@@ -31,12 +31,18 @@ import com.vaadin.flow.theme.lumo.LumoUtility.Overflow;
 import com.vaadin.flow.theme.lumo.LumoUtility.Padding;
 import com.vaadin.flow.theme.lumo.LumoUtility.Width;
 import java.util.UUID;
+
+import kstu.bank.data.User;
+import kstu.bank.security.AuthenticatedUser;
 import kstu.bank.views.MainLayout;
 
 @PageTitle("Техподдержка")
 @Route(value = "support", layout = MainLayout.class)
 @AnonymousAllowed
-public class ТехподдержкаView extends HorizontalLayout {
+public class SupportChatView extends HorizontalLayout {
+
+    private final AuthenticatedUser authenticatedUser;
+
 
     public static class ChatTab extends Tab {
         private final ChatInfo chatInfo;
@@ -85,13 +91,13 @@ public class ТехподдержкаView extends HorizontalLayout {
         }
     }
 
-    private ChatInfo[] chats = new ChatInfo[]{new ChatInfo("general", 0), new ChatInfo("support", 0),
-            new ChatInfo("casual", 0)};
+    private ChatInfo[] chats = new ChatInfo[]{new ChatInfo("Помощь с платежами", 0)};
     private ChatInfo currentChat = chats[0];
     private Tabs tabs;
 
-    public ТехподдержкаView() {
-        addClassNames("техподдержка-view", Width.FULL, Display.FLEX, Flex.AUTO);
+    public SupportChatView(AuthenticatedUser authenticatedUser) {
+        this.authenticatedUser = authenticatedUser;
+        addClassNames("support-chat-view", Width.FULL, Display.FLEX, Flex.AUTO);
         setSpacing(false);
 
         // UserInfo is used by Collaboration Engine and is used to share details
@@ -100,7 +106,8 @@ public class ТехподдержкаView extends HorizontalLayout {
         // identifier, and the user's real name. You can also provide the users
         // avatar by passing an url to the image as a third parameter, or by
         // configuring an `ImageProvider` to `avatarGroup`.
-        UserInfo userInfo = new UserInfo(UUID.randomUUID().toString(), "Steve Lange");
+        User user = authenticatedUser.get().get();
+        UserInfo userInfo = new UserInfo(user.getId().toString(), user.getName() + " " + user.getSurname());
 
         tabs = new Tabs();
         for (ChatInfo chat : chats) {

@@ -1,0 +1,19 @@
+@media screen and (max-width: 740px) {
+ .support-chat-view {
+    flex-direction: column-reverse;
+  }
+ .support-chat-view aside {
+    width: 100% !important;
+    flex-direction: row;
+  }
+ .support-chat-view aside header {
+    display: none;
+  }
+ .support-chat-view aside vaadin-tabs {
+    flex: 1 1 auto;
+    overflow: auto;
+  }
+ .support-chat-view aside vaadin-tabs vaadin-tab.justify-between {
+    justify-content: flex-start;
+  }
+}

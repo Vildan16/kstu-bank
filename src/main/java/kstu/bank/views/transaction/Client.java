@@ -1,4 +1,4 @@
-package kstu.bank.views.историяопераций;
+package kstu.bank.views.transaction;
 
 public class Client {
 

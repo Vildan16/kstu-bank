@@ -1,16 +1,22 @@
 package kstu.bank.data;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.Lob;
-import jakarta.persistence.Table;
+import com.vaadin.flow.component.avatar.Avatar;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import org.checkerframework.checker.units.qual.A;
+import org.springframework.format.annotation.DateTimeFormat;
+
+import java.time.LocalDate;
+import java.util.Date;
+import java.util.List;
 import java.util.Set;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "application_user")
 public class User extends AbstractEntity {
@@ -22,39 +28,27 @@ public class User extends AbstractEntity {
     @Enumerated(EnumType.STRING)
     @ElementCollection(fetch = FetchType.EAGER)
     private Set<Role> roles;
-    @Lob
-    @Column(length = 1000000)
-    private byte[] profilePicture;
 
-    public String getUsername() {
-        return username;
-    }
-    public void setUsername(String username) {
-        this.username = username;
-    }
-    public String getName() {
-        return name;
-    }
-    public void setName(String name) {
-        this.name = name;
-    }
-    public String getHashedPassword() {
-        return hashedPassword;
-    }
-    public void setHashedPassword(String hashedPassword) {
-        this.hashedPassword = hashedPassword;
-    }
-    public Set<Role> getRoles() {
-        return roles;
-    }
-    public void setRoles(Set<Role> roles) {
-        this.roles = roles;
-    }
-    public byte[] getProfilePicture() {
-        return profilePicture;
-    }
-    public void setProfilePicture(byte[] profilePicture) {
-        this.profilePicture = profilePicture;
-    }
+    @Column
+    private String surname;
 
+    @Column
+    private LocalDate birthDate;
+
+    @Column
+    private String phoneNumber;
+
+    @Column
+    @Email
+    private String email;
+
+    @Column
+    private Long balance = 0L;
+
+    @OneToMany
+    private List<Account> accounts;
+
+    public Avatar getAvatar() {
+        return new Avatar(name + " " + surname);
+    }
 }

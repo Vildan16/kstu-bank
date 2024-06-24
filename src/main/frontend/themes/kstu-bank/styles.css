@@ -1,3 +1,3 @@
 @import url('./main-layout.css');
-@import url('./views/историяопераций-view.css');
-@import url('./views/техподдержка-view.css');
+@import url('./views/transaction-history-view.css');
+@import url('views/support-chat-view.css');
