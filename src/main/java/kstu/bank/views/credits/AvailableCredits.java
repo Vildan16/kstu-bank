@@ -1,146 +1,131 @@
 package kstu.bank.views.credits;
 
-import com.vaadin.flow.component.avatar.Avatar;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.grid.GridVariant;
-import com.vaadin.flow.component.grid.dataview.GridListDataView;
-import com.vaadin.flow.component.gridpro.GridPro;
-import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.data.renderer.ComponentRenderer;
-import com.vaadin.flow.data.renderer.LocalDateTimeRenderer;
-import com.vaadin.flow.data.renderer.NumberRenderer;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.IntegerField;
+import com.vaadin.flow.component.textfield.NumberField;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.data.validator.DoubleRangeValidator;
+import com.vaadin.flow.data.validator.IntegerRangeValidator;
+import com.vaadin.flow.data.validator.StringLengthValidator;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.RolesAllowed;
-import kstu.bank.data.Role;
-import kstu.bank.data.Transaction;
-import kstu.bank.security.AuthenticatedUser;
+import kstu.bank.data.Creditt;
 import kstu.bank.services.CrmService;
 import kstu.bank.views.MainLayout;
-import kstu.bank.views.transaction.Client;
-
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Locale;
 
 @PageTitle("Доступные кредиты")
 @Route(value = "available-credits", layout = MainLayout.class)
 @RolesAllowed(value = {"ROLE_ADMIN"})
-public class AvailableCredits extends Div {
-    private AuthenticatedUser authenticatedUser;
-    private CrmService crmService;
+public class AvailableCredits extends VerticalLayout {
+    private final CrmService crmService;
+    private Grid<Creditt> grid;
+    private Button createButton;
+    private Button deleteButton;
+    private Dialog dialog;
+    private FormLayout formLayout;
+    private Binder<Creditt> binder;
+    private Creditt currentCredit;
 
-    private GridPro<Transaction> grid;
-    private GridListDataView<Transaction> gridListDataView;
-
-    private Grid.Column<Transaction> fromColumn;
-    private Grid.Column<Transaction> toColumn;
-    private Grid.Column<Transaction> sumColumn;
-
-    private Grid.Column<Transaction> statusColumn;
-    private Grid.Column<Transaction> dateTimeColumn;
-
-    public AvailableCredits(AuthenticatedUser authenticatedUser, CrmService crmService) {
-        this.authenticatedUser = authenticatedUser;
+    public AvailableCredits(CrmService crmService) {
         this.crmService = crmService;
-        addClassName("transaction-history-view");
-        setSizeFull();
         createGrid();
+
+        createButton = new Button("Создать", click -> openDialog(new Creditt()));
+        createButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        deleteButton = new Button("Удалить", click -> deleteCredit());
+        deleteButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        add(new HorizontalLayout(createButton, deleteButton));
+
         add(grid);
+
+        dialog = new Dialog();
+        formLayout = new FormLayout();
+        binder = new Binder<>(Creditt.class);
+
+        TextField nameField = new TextField("Название");
+        NumberField percent = new NumberField("Процентная ставка (%)");
+        IntegerField period = new IntegerField("Срок (мес.)");
+        TextField minSum = new TextField("Минимальная сумма (руб.)");
+        TextField maxSum = new TextField("Максимальная сумма (руб.)");
+        binder.forField(nameField)
+                .withValidator(new StringLengthValidator(
+                        "Введите название", 1, null))
+                .bind(Creditt::getName, Creditt::setName);
+
+        binder.forField(percent)
+                .withValidator(new DoubleRangeValidator(
+                        "Введите значение", 0.01, null))
+                .bind(Creditt::getPercent, Creditt::setPercent);
+
+        binder.forField(period)
+                .withValidator(new IntegerRangeValidator(
+                        "Введите значение", 1, null))
+                .bind(Creditt::getPeriod, Creditt::setPeriod);
+        binder.forField(minSum)
+                .withValidator(new StringLengthValidator(
+                        "Введите значение", 1, null))
+                .bind(creditt -> String.valueOf(creditt.getMinSum()), (creditt, string) -> creditt.setMinSum(Double.parseDouble(string)));
+        binder.forField(maxSum)
+                .withValidator(new StringLengthValidator(
+                        "Введите значение", 1, null))
+                .bind(creditt -> String.valueOf(creditt.getMaxSum()), (creditt, string) -> creditt.setMaxSum(Double.parseDouble(string)));
+        formLayout.add(new H4("Добавление доступного кредита"));
+        formLayout.add(nameField, percent, period, minSum, maxSum);
+        formLayout.setSizeFull();
+        formLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 1));
+        formLayout.setMaxWidth("500px");
+
+        Button saveButton = new Button("Сохранить", click -> saveCredit());
+        saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        formLayout.add(new HorizontalLayout(saveButton, new Button("Отмена", click -> dialog.close())));
+
+        dialog.add(formLayout);
     }
 
     private void createGrid() {
-        createGridComponent();
-        addColumnsToGrid();
+        grid = new Grid<>(Creditt.class);
+        grid.setColumns("name", "percent", "period", "minSum", "maxSum");
+        grid.getColumns().forEach(col -> col.setAutoWidth(true));
+        grid.getColumnByKey("name").setHeader("Название");
+        grid.getColumnByKey("percent").setHeader("Процентная ставка (%)");
+        grid.getColumnByKey("period").setHeader("Период (мес.)");
+        grid.getColumnByKey("minSum").setHeader("Минимальная сумма (руб.)");
+        grid.getColumnByKey("maxSum").setHeader("Максимальная сумма (руб.)");
+        updateGrid();
     }
 
-    private void createGridComponent() {
-        grid = new GridPro<>();
-        grid.setSelectionMode(Grid.SelectionMode.NONE);
-        grid.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_COLUMN_BORDERS);
-        grid.setHeight("100%");
-
-        List<Transaction> transactions = getTransactions();
-        gridListDataView = grid.setItems(transactions);
+    private void updateGrid() {
+        grid.setItems(crmService.getAllCredits());
     }
 
-    private void addColumnsToGrid() {
-        createFromColumn();
-        createToColumn();
-        createAmountColumn();
-        createStatusColumn();
-        createDateColumn();
+    private void openDialog(Creditt credit) {
+        currentCredit = credit;
+        binder.setBean(credit);
+        dialog.open();
     }
 
-    private void createFromColumn() {
-        fromColumn = grid.addColumn(new ComponentRenderer<>(transaction -> {
-            HorizontalLayout hl = new HorizontalLayout();
-            hl.setAlignItems(FlexComponent.Alignment.CENTER);
-            Avatar img = transaction.getFrom().getAvatar();
-            Span span = new Span();
-            span.setClassName("name");
-            span.setText(transaction.getFrom().getName() + " " + transaction.getFrom().getSurname());
-            hl.add(img, span);
-            return hl;
-        })).setComparator(transaction -> transaction.getFrom().getName()).setHeader("От");
-    }
-
-    private void createToColumn() {
-        toColumn = grid.addColumn(new ComponentRenderer<>(transaction -> {
-            HorizontalLayout hl = new HorizontalLayout();
-            hl.setAlignItems(FlexComponent.Alignment.CENTER);
-            Avatar img = transaction.getTo().getAvatar();
-            Span span = new Span();
-            span.setClassName("name");
-            span.setText(transaction.getTo().getName() + " " + transaction.getTo().getSurname());
-            hl.add(img, span);
-            return hl;
-        })).setComparator(transaction -> transaction.getTo().getName()).setHeader("Кому");
-    }
-
-    private void createAmountColumn() {
-        sumColumn = grid
-                .addColumn(
-                        new NumberRenderer<>(Transaction::getSum, Locale.of("ru")))
-                .setComparator(Transaction::getSum).setHeader("Сумма");
-    }
-
-    private void createStatusColumn() {
-        statusColumn = grid.addColumn(new ComponentRenderer<>(transaction -> {
-            Span span = new Span();
-            span.setText(transaction.getStatus());
-            span.getElement().setAttribute("theme", "badge " + transaction.getStatus().toLowerCase());
-            return span;
-        })).setHeader("Статус");
-    }
-
-    private void createDateColumn() {
-        dateTimeColumn = grid
-                .addColumn(new LocalDateTimeRenderer<>(Transaction::getDateTime,
-                        () -> DateTimeFormatter.ofPattern("dd.MM.yyyy hh:mm")))
-                .setComparator(Transaction::getDateTime).setHeader("Дата и время").setWidth("360px").setFlexGrow(0);
-    }
-
-    private List<Transaction> getTransactions() {
-        if (authenticatedUser.get().get().getRoles().contains(Role.ADMIN)) {
-            return crmService.getAllTransactions();
-        } else {
-            return crmService.getAllTransactionsByUsername(authenticatedUser.get().get().getUsername());
+    private void saveCredit() {
+        if (binder.validate().isOk()) {
+            crmService.createCredit(currentCredit);
+            dialog.close();
+            updateGrid();
         }
     }
 
-    private Client createClient(int id, String img, String client, double amount, String status, String date) {
-        Client c = new Client();
-        c.setId(id);
-        c.setImg(img);
-        c.setClient(client);
-        c.setAmount(amount);
-        c.setStatus(status);
-        c.setDate(date);
-
-        return c;
+    private void deleteCredit() {
+        Creditt selectedCredit = grid.asSingleSelect().getValue();
+        if (selectedCredit != null) {
+            crmService.deleteCredit(selectedCredit.getId());
+            updateGrid();
+        }
     }
 }

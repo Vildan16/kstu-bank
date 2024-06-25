@@ -17,6 +17,7 @@ import kstu.bank.data.User;
 import kstu.bank.security.AuthenticatedUser;
 import kstu.bank.views.clientcard.ClientCardView;
 import kstu.bank.views.credits.AvailableCredits;
+import kstu.bank.views.credits.UserCredits;
 import kstu.bank.views.support.SupportChatView;
 import kstu.bank.views.transaction.AccountGrid;
 import kstu.bank.views.transaction.TransactionHistoryView;
@@ -83,6 +84,9 @@ public class MainLayout extends AppLayout {
         }
         if (accessChecker.hasAccess(AvailableCredits.class)) {
             nav.addItem(new SideNavItem("Доступные кредиты", AvailableCredits.class, LineAwesomeIcon.MONEY_BILL_ALT_SOLID.create()));
+        }
+        if (accessChecker.hasAccess(UserCredits.class)) {
+            nav.addItem(new SideNavItem("Мои кредиты", UserCredits.class, LineAwesomeIcon.MONEY_BILL_ALT_SOLID.create()));
         }
         if (accessChecker.hasAccess(SupportChatView.class)) {
             nav.addItem(new SideNavItem("Техподдержка", SupportChatView.class, LineAwesomeIcon.COMMENTS.create()));

@@ -24,6 +24,7 @@ import com.vaadin.flow.theme.lumo.LumoUtility.Gap;
 import com.warrenstrange.googleauth.GoogleAuthenticator;
 import com.warrenstrange.googleauth.GoogleAuthenticatorKey;
 import com.warrenstrange.googleauth.GoogleAuthenticatorQRGenerator;
+import jakarta.annotation.security.RolesAllowed;
 import kstu.bank.components.avataritem.AvatarItem;
 import kstu.bank.data.User;
 import kstu.bank.data.UserRepository;
@@ -33,7 +34,7 @@ import kstu.bank.views.MainLayout;
 
 @PageTitle("Личный кабинет")
 @Route(value = "card", layout = MainLayout.class)
-@AnonymousAllowed
+@RolesAllowed({"ROLE_ADMIN", "ROLE_USER"})
 public class ClientCardView extends Composite<VerticalLayout> {
     private final AuthenticatedUser authenticatedUser;
     private final UserRepository userRepository;

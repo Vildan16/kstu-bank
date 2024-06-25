@@ -32,13 +32,14 @@ import com.vaadin.flow.theme.lumo.LumoUtility.Padding;
 import com.vaadin.flow.theme.lumo.LumoUtility.Width;
 import java.util.UUID;
 
+import jakarta.annotation.security.RolesAllowed;
 import kstu.bank.data.User;
 import kstu.bank.security.AuthenticatedUser;
 import kstu.bank.views.MainLayout;
 
 @PageTitle("Техподдержка")
 @Route(value = "support", layout = MainLayout.class)
-@AnonymousAllowed
+@RolesAllowed({"ROLE_ADMIN", "ROLE_USER"})
 public class SupportChatView extends HorizontalLayout {
 
     private final AuthenticatedUser authenticatedUser;

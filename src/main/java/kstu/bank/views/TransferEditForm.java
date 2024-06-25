@@ -23,6 +23,7 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.flow.theme.lumo.LumoUtility.Gap;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.persistence.EntityNotFoundException;
 import kstu.bank.components.avataritem.AvatarItem;
 import kstu.bank.data.Account;
@@ -40,7 +41,7 @@ import java.util.stream.Collectors;
 
 @PageTitle("Перевод средств")
 @Route(value = "transfer-edit", layout = MainLayout.class)
-@AnonymousAllowed
+@RolesAllowed({"ROLE_ADMIN", "ROLE_USER"})
 public class TransferEditForm extends Composite<VerticalLayout> {
     private final AuthenticatedUser authenticatedUser;
     private final UserRepository userRepository;

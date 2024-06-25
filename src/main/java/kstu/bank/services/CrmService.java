@@ -16,6 +16,12 @@ public class CrmService {
     TransactionRepository transactionRepository;
     @Autowired
     AccountRepository accountRepository;
+    @Autowired
+    CreditRepository creditRepository;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private UserCreditRepository userCreditRepository;
 
     public List<Transaction> getAllTransactions() {
         return transactionRepository.findAll(Sort.by("dateTime"));
@@ -75,8 +81,33 @@ public class CrmService {
         accountRepository.save(accountTo);
     }
 
+    public void saveTransaction(Transaction transaction, Account accountTo) {
+        transactionRepository.save(transaction);
+        accountRepository.save(accountTo);
+    }
+
     public void closeAccount(Account account) {
         account.setStatus("Закрыт");
         accountRepository.save(account);
+    }
+
+    public List<Creditt> getAllCredits() {
+        return creditRepository.findAll();
+    }
+
+    public void createCredit(Creditt credit) {
+        creditRepository.save(credit);
+    }
+
+    public void deleteCredit(Long id) {
+        creditRepository.deleteById(id);
+    }
+
+    public void saveUser(User user) {
+        userRepository.save(user);
+    }
+
+    public void saveUserCreditt(UserCreditt creditt) {
+        userCreditRepository.save(creditt);
     }
 }

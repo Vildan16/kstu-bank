@@ -8,6 +8,8 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import org.checkerframework.checker.units.qual.A;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
@@ -45,8 +47,12 @@ public class User extends AbstractEntity {
     @Column
     private Long balance = 0L;
 
-    @OneToMany
+    @OneToMany(fetch = FetchType.EAGER)
+    @Fetch(FetchMode.JOIN)
     private List<Account> accounts;
+
+    @OneToMany(fetch = FetchType.EAGER)
+    private List<UserCreditt> credits;
 
     public Avatar getAvatar() {
         return new Avatar(name + " " + surname);

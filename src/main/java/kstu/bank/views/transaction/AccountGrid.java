@@ -21,6 +21,7 @@ import com.vaadin.flow.data.renderer.NumberRenderer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
+import jakarta.annotation.security.RolesAllowed;
 import kstu.bank.data.Account;
 import kstu.bank.data.Role;
 import kstu.bank.data.Transaction;
@@ -35,6 +36,7 @@ import java.util.Locale;
 
 @PageTitle("Мои счета")
 @Route(value = "accounts", layout = MainLayout.class)
+@RolesAllowed({"ROLE_USER", "ROLE_ADMIN"})
 public class AccountGrid extends Div {
     private AuthenticatedUser authenticatedUser;
     private CrmService crmService;
